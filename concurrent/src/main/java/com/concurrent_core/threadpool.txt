@@ -1,0 +1,109 @@
+线程池：
+	executor: executor
+		ExecutorService: submit
+			ScheduledExecutorService: schedule
+	
+	ExecutorService的实现类:
+		ForkJoinPool
+		ThreadPoolExecutor
+			ScheduledThreadPoolExecutor
+			
+	使用Executors获取线程池：如果没有指定线程工厂的话，使用默认的线程工厂定制线程
+		cache: 缓冲线程池，内部是使用的SynchronousQueue队列
+		fix: 固定大小的线程池，内部使用LinkedBlockingQueue队列
+		workstealing: 工作窃取线程池，是使用forkjoinpool实现的
+		single: 单线程的线程池，是使用LinkedBlockingQueue列队
+		scheduled: 周期性的执行任务的线程池，使用DelayedWorkQueue队列
+		
+		forkjoin: 并行处理，线程数等于cpu内核数
+		    RecursiveTask<Long>:有返回值
+			RecursiveAction:没有返回值,需要阻塞的拿到的返回值结果，因为是守护线程，主线程dead的话，
+							守护也会dead
+		
+							
+	使用ThreadPoolExecutor创建线程池:
+		 public ThreadPoolExecutor(int corePoolSize,  //核心线程数，包括空闲线程
+                              int maximumPoolSize,    //最大线程数，使用了无界队列的话这个参数没有用
+                              long keepAliveTime,     //非核心线程存活的时间，如果为0，表示执行完就从队列中移除
+                              TimeUnit unit,		  //时间单位
+                              BlockingQueue<Runnable> workQueue,   //使用的队列，用来容纳超出线程池的线程
+                              ThreadFactory threadFactory,         //使用线程工厂定制线程
+                              RejectedExecutionHandler handler)    //饱和后使用哪种策略
+                              
+      线程阻塞队列的选择：
+        1.ArrayBlockingQueue：是一个基于数组结构的有界阻塞队列，此队列按 FIFO（先进先出）原则对元素进行排序
+        2.LinkedBlockingQueue：一个基于链表结构的阻塞队列，此队列按FIFO （先进先出） 排序元素，吞吐量通常要高于ArrayBlockingQueue。
+        	                                 静态工厂方法Executors.newFixedThreadPool()使用了这个队列
+       	3.SynchronousQueue：一个不存储元素的阻塞队列。每个插入操作必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态，
+       						吞吐量通常要高于LinkedBlockingQueue，静态工厂方法Executors.newCachedThreadPool使用了这个队列。
+        4.一个具有优先级得无限阻塞队列
+      
+     饱和策略：
+        AbortPolicy：直接抛出异常
+     	CallerRunsPolicy：只用调用者所在线程来运行任务。
+		DiscardOldestPolicy：丢弃队列里最近的一个任务，并执行当前任务。
+		DiscardPolicy：不处理，丢弃掉。
+		当然也可以根据应用场景需要来实现RejectedExecutionHandler接口自定义策略。如记录日志或持久化不能处理的任务    
+                              
+      线程池简单分析：
+      	1.首先线程池判断基本线程池是否已满？没满，创建一个工作线程来执行任务。满了，则进入下个流程(队列判断)
+      	2.其次线程池判断工作队列是否已满？没满，则将新提交的任务存储在工作队列里。满了，则进入下个流程(线程池是否已经最大)
+      		注意：如果使用的SynchronousQueue的话，马上创建线程执行
+      	3.最后线程池判断整个线程池是否已满？没满，则创建一个新的工作线程来执行任务，满了，则交给饱和策略来处理这个任务
+                              
+     
+     线程池部分方法解析:
+     	shutdown和shutdownNow:
+     	  shutdown作用是当前未执行完的线程继续执行，不再继续添加任务，并且该方法不会阻塞，调用之后main线程就会马上结束，
+     		  而线程池会继续运行知道所有任务执行完毕之后才会停止。如果不调用shutdown方法，线程池会一直运行，以便可以添加并执行任务
+     	  shutdownNow是中断所有的任务task，并且抛出InterruptedException异常，前提是要在runnable中使用
+     	  	 if(Thread.currentThread().isIntrrupted()==true)判断线程中断状态，正在执行的线程会抛出异常，而未执行的线程不在执行。
+     	  	 如果没有if语句及抛出异常代码， 线程池中的线程执行完毕，未执行的线程不在执行	
+     	  
+     	allowsCoreThreadTimeOut()/(boolean):配置核心线程是否具有超时效果，默认是false
+     	prestartCoreThread():每调用一次就创建一次核心线程，返回boolean
+     	prestartAllCoreThread()：启动全部核心线程，返回启动核心线程数量
+     	getompletedTaskCount(): 取得已经执行完的任务数
+        
+        afterExecutor()和beforeExecutor()对线程执行进行监控
+        remove(runnable):移除尚未被执行的线程，正在运行的不能被移除，使用submit提交的任务并不能被移除
+        
+        
+   /*******************************************************************************/  	  	 
+     使用ThreadFactory+execute+UncaughtExceptionHandler处理异常：
+     自定义饱和策略可以实现被拒绝执行线程的日志话(RejectedExecutionHandler)
+     线程池ThreadPoolExecutor与runnable执行为乱序行为
+     
+     
+     如何合理的配置线程池：
+     	任务的性质：CPU密集型任务，IO密集型任务和混合型任务。
+		任务的优先级：高，中和低。
+		任务的执行时间：长，中和短。
+		任务的依赖性：是否依赖其他系统资源，如数据库连接。
+     	
+     	1.CPU密集型任务配置尽可能少的线程数量，如配置Ncpu+1个线程的线程池。
+     	  IO密集型任务则由于需要等待IO操作，线程并不是一直在执行任务，则配置尽可能多的线程，如2*Ncpu。混合型的任务，
+     	   如果可以拆分，则将其拆分成一个CPU密集型任务和一个IO密集型任务，只要这两个任务执行的时间相差不是太大，
+     	   那么分解后执行的吞吐率要高于串行执行的吞吐率，如果这两个任务执行时间相差太大，则没必要进行分解。
+     	   我们可以通过Runtime.getRuntime().availableProcessors()方法获得当前设备的CPU个数。
+     	
+     	2.优先级不同的任务可以使用优先级队列PriorityBlockingQueue来处理。它可以让优先级高的任务先得到执行，
+     	    需要注意的是如果一直有优先级高的任务提交到队列里，那么优先级低的任务可能永远不能执行。
+     	
+     	3.执行时间不同的任务可以交给不同规模的线程池来处理，或者也可以使用优先级队列，让执行时间短的任务先执行。
+     	
+     	4.依赖数据库连接池的任务，因为线程提交SQL后需要等待数据库返回结果，如果等待的时间越长CPU空闲时间就越长，
+     	    那么线程数应该设置越大，这样才能更好的利用CPU。
+     	    
+     	 建议使用有界队列，有界队列能增加系统的稳定性和预警能力，可以根据需要设大一点，比如几千。有一次我们组使用的后台任务线程池的队列和线程池全满了，
+     	 不断的抛出抛弃任务的异常，通过排查发现是数据库出现了问题，导致执行SQL变得非常缓慢，因为后台任务线程池里的任务全是需要向数据库查询和插入数据的，
+     	 所以导致线程池里的工作线程全部阻塞住，任务积压在线程池里。如果当时我们设置成无界队列，线程池的队列就会越来越多，有可能会撑满内存，导致整个系统不可用，
+     	 而不只是后台任务出现问题。当然我们的系统所有的任务是用的单独的服务器部署的，而我们使用不同规模的线程池跑不同类型的任务，但是出现这样问题时也会影响到其他任务。
+     	
+     线程池监控：
+    taskCount：线程池需要执行的任务数量。
+	completedTaskCount：线程池在运行过程中已完成的任务数量。小于或等于taskCount。
+	largestPoolSize：线程池曾经创建过的最大线程数量。通过这个数据可以知道线程池是否满过。如等于线程池的最大大小，则表示线程池曾经满了。
+	getPoolSize:线程池的线程数量。如果线程池不销毁的话，池里的线程不会自动销毁，所以这个大小只增不减。
+	getActiveCount：获取活动的线程数。    
+     

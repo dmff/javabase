@@ -1,0 +1,47 @@
+java8十大新特性：
+       1.接口的默认方法:可以在接口定义非抽象方法
+                        注意：默认方式只能用对象访问，在lambda表达式是访问不到默认方法的
+       2.lambda表达式:
+               //可以自动导入参数类型,相当于定义了一个匿名函数，然后执行里面的代码，参数为a，b
+               Collections.sort(list,(a,b)->{
+                           return a.compareTo(b);
+                       });
+       3.函数式接口：
+            在接口上使用@FunctionalInterface，并且仅仅只包含一个抽象的方法
+                如果一个函数参数接收一个单方法的接口而你传递的是一个function
+       4.方法构造函数的引用
+            Java 8 允许你使用 :: 关键字来传递方法或者构造函数引用
+            使用new来指定构造方法，会根据参数类型指定构造方法
+
+       5.lambda的作用域;
+            在lambda表达式中访问外层作用域和老版本的匿名对象中的方式很相似。你可以直接访问标记了final的外层局部变量，或者实例的字段以及静态变量。
+            但是和匿名对象不同的是外层局部变量可以不用声明为final，它会自己加上，所以说局部变量即使不声明，在lambda使用后也是声明为final的，不可修改的
+
+       6.函数式接口介绍：
+            Predicate 接口只有一个参数，返回boolean类型；该接口包含多种默认方法来将Predicate组合成其他复杂的逻辑（比如：与，或，非）
+            Function 接口有一个参数并且返回一个结果，并附带了一些可以和其他函数组合的默认方法（compose, andThen）
+            Supplier 接口返回一个任意范型的值，和Function接口不同的是该接口没有任何参数，可以用来创建无参对象
+            Consumer 接口表示执行在单个参数上的操作
+            Comparator 是老Java中的经典接口， Java 8在此之上添加了多种默认方法
+            Optional 不是函数是接口，这是个用来防止NullPointerException异常的辅助类型
+
+       7.并行streams
+            list.parallelStream()//获取并行流
+            list.stream()//获取串行流
+
+       8.map不支持stream，但是map提供一些新的有用的方法处理日常任务
+            Merge做的事情是如果键名不存在则插入，否则则对原键对应的值做合并操作并重新插入到map中
+
+       9.Date API:
+            1.Clock类提供了访问当前日期和时间的方法，Clock是时区敏感的，可以用来取代 System.currentTimeMillis() 来获取当前的微秒数。
+              某一个特定的时间点也可以使用Instant类来表示，Instant类也可以用来创建老的java.util.Date对象。
+            2.Timezones 时区,时区使用ZoneId来表示。时区可以很方便的使用静态方法of来获取到。 时区定义了到UTS时间的时间差，
+              在Instant时间点对象到本地日期对象之间转换的时候是极其重要的。
+            3.LocalTime 本地时间,一个没有时区信息的时间，例如 晚上10点，或者 17:30:15
+            4.LocalDate 本地日期,
+            5.LocalDateTime 本地日期时间,LocalDateTime 同时表示了时间和日期，相当于前两节内容合并到一个对象上了
+
+       10.支持多重注解
+            Java 8允许我们把同一个类型的注解使用多次，只需要给该注解标注一下@Repeatable即可
+            没有使用@Repeatable的话，需要封装成Hints注解，在里面还有hint数组
+            使用@Repeatable的话java编译器会隐性的帮你定义好@Hints注解

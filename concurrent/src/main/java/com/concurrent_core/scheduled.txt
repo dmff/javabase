@@ -1,0 +1,43 @@
+1.采用newSingleThreadScheduledExecutor是单线程的执行任务，在多个任务是同时消耗时间的
+2.采用newScheduledThreadPool(2)是多线程的执行任务，等待完时间后可以直接执行
+
+3.runnable和callable本质是一样的，只不过callable多一个返回值
+
+4.runnable周期性的执行任务:scheduleAtFixedRate
+	执行任务的时间大于周期性的执行时间，采用单线程直接执行
+	执行任务的时间小于周期性的执行时间，需要等待周期性时间-执行任务的时间
+	说白了，只能超时周期性的执行
+	
+5.scheduleWithFixedDelay：设置多个任务之间固定的运行时间间隔，和任务执行的时间没有关系，就是两个任务的时间间隔
+
+6.getQueue取得任务的队列，这些任务是将要运行的，只能跟在运行的任务不再此队列中，未来欲执行的任务放在次队列中
+  remove是移除队列中的任务
+  
+7.ScheduledThreadPoolExecutor.setExecuteExistingDelayedTasksAfterShutdownPolicy：
+	作用是执行shutdown方法时，任务是否执行，默认是true(继续执行)，false表示不再执行
+
+8.ScheduledThreadPoolExecutor.setContinueExistingPeriodicTasksAfterShutdownPolicy:
+	作用是调用周期性的执行任务时，如果调用shutdown方法，任务是否还会运行，false不再运行，进程销毁
+	
+9.cancal表示取消任务，和if(线程中断)配合使用，使正在运行的任务终止运行
+  ScheduledThreadPoolExecutor.setRemoveOnCancelPolicy表示是否将取消的任务从队列中清除
+  
+ForkJoinPool:
+	 RecursiveTask使用get和join的区别：
+	 	使用get方法时，当子线程出现异常时可以捕获
+	 	使用join方法时,遇到异常直接抛出 
+	 任务之间运行的方式是异步的，但join是同步的(执行完返回结果)
+
+	 execute和submit、invoke的区别：
+	 	execute执行没有返回值，submit有返回值，invoke有返回值，并且是阻塞的等待返回值
+	 	解决异步不能同步获取值的办法：
+	 		1.线程休眠
+	 		2.一直获取，当成功获取后退出
+	 		3.阻塞获取，才用future.get
+	 
+	 invokeAll的get方法具有阻塞的特性，invokeAll和fork比具有优化分解的效果，fork会创建大量线程
+	 
+	 forkjointask对异常的处理：
+	 		使用ForkJoinTask.isCompletedAbnormally判断执行时是否出现异常
+	 		使用ForkJoinTask.isCompletedNormally判断晕否正常执行
+	 		使用ForkJoinTask.getException获取异常的信息

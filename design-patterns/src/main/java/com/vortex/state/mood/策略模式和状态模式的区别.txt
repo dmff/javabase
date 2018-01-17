@@ -1,0 +1,11 @@
+策略模式：
+状态模式：
+
+共同点：他们的结构完全一致。
+
+区别：语义不同。
+
+
+京东的折扣方案：工作日9折，周末8折。DiscountService discount(){}
+
+ehcache,redis,memcached

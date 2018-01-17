@@ -1,0 +1,34 @@
+1.用接口future和Callable使线程具有返回值的功能
+	
+	Callable和Runnable的区别：
+		Callable的call方法可以有返回值，而Runnable的run方法没有返回值
+		Callable的call方法可以声明抛出异常，而Runnable的run方法不可以声明抛出异常
+		执行完Callable的任务后，使用future获取返回值
+		
+	submit可以传入Callable、Runnable
+	   submit传入runnable的返回值为null，get具有阻塞性，isDone(表示任务是否完成)无阻塞性
+	     使用submit(Runnable r,T result) result可以作为执行结果的返回值，不需要使用get方法获得
+	     	其实的意思是把返回值保存到result中，还是需要通过get方式获取
+	
+	cancle(boolean)和iscancle使用：
+		参数的作用是：如果线程正在运行是否中断正在运行的线程，需要和if(thread.isInterrupted())配合使用
+		当线程已经执行完成时，返回值是false
+		
+	execute和submit方法的区别：
+		execute没有返回值，submit有返回值
+		execute默认异常直接抛出，不能捕获，但是可以通过自定义threadfactory捕获，submit默认情况下是可以捕获异常
+		
+	future接口的默认实现类是futuretask，默认情况下也是使用futuretask，线程是可以执行futuretask的，然后通过futuretask阻塞的方式获取返回值
+	future的缺点：由于是阻塞的获取任务执行的结果，一旦前面任务比较耗时，将会排队等待，大大影响运行效率，
+				  并且main线程不能保证首先获取最先完成任务的返回值
+
+2.completionservice:异步的方式一边产生新的任务，一边处理已经完成的任务
+		使用submit提交任务，使用take取得已经完成的任务，并按照这些人物的时间处理顺序处理他们的结果
+		使用completionservice，哪个接口限制性完，就先任务的返回值先打印，并且如果没有任务被执行玩，也是具有阻塞性的
+		take()方法，获取最先执行完的future，如果不存在这样的任务，则等待
+		poll()方法，和take基本一样，不存在这样的任务时，返回null，没有阻塞的效果
+		pool(timeout),等待指定的timeouts时间，在指定时间内获取返回值继续往下执行，如果超时也继续往下执行
+					    超时等待的时间是会累加的，这样到达这个超时时间内有返回结果就会返回
+					    
+		出现异常执行的流程：
+			
