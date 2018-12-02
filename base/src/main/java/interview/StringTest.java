@@ -66,7 +66,7 @@ public class StringTest {
 		 System.out.println(s);
 	 }
 	 
-	 public String concatString(String s1,String s2,String s3){
+	/* public String concatString(String s1,String s2,String s3){
 		 //return s1+s2+s3;
 		 //前面一段代码相当于后面这些代码，由于stringbuffer不会逃逸，所以sb不会加锁
 		 StringBuffer sb = new StringBuffer();
@@ -74,5 +74,5 @@ public class StringTest {
 		 sb.append(s2);
 		 sb.append(s3);
 		 return sb.toString(); 
-	 }
+	 }*/
 }

@@ -20,9 +20,7 @@ public class IntMapTest {
     public static void add() {
         for (int i = 0; i < 10000;i++) {
             for (int j = 0; j < size; j++) {
-                if (map.get(j) == null) {
-                    map.put(j, "aab");
-                }
+                map.putIfAbsent(j, "aab");
             }
         }
     }

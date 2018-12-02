@@ -102,7 +102,7 @@ public class CodeCount {
         long count = Files.walk(Paths.get("E:\\java-project\\my-project\\javabase\\base\\src\\main\\java\\jdk\\IntMapTest.java"))
                 .filter(file -> !Files.isDirectory(file))
                 .filter(file -> file.toString().endsWith(".java"))
-                .flatMap(CodeCount.of(file -> Files.lines(file), Stream.empty()))
+                .flatMap(CodeCount.of(Files::lines, Stream.empty()))
                 .filter(line -> !line.trim().isEmpty())
                 .filter(line -> !line.trim().startsWith("//"))
                 .filter(line -> !(line.trim().startsWith("/*") && line.trim().endsWith("*/")))

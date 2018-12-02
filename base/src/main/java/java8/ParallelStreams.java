@@ -48,7 +48,7 @@ public class ParallelStreams {
         for(int i=0;i<10;i++){
             map.putIfAbsent(i,"val"+i);// putIfAbsent 不需要我们做额外的存在性检查,如果不存在则put
         }
-        map.forEach((id,val)->{System.out.println(id+":"+val);});
+        map.forEach((id,val)->System.out.println(id+":"+val));
 
         map.computeIfPresent(3,(num,val)->val+ num);
         System.out.println(map.get(3));              //33

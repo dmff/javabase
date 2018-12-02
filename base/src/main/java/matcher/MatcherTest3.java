@@ -49,7 +49,6 @@ public class MatcherTest3 {
 		String str2 = "kgjkgjlj;klhgkhgklmgklm;fmsgdkg;sgdf";
 		System.out.println(str1.matches("(?:(?!abc).)*"));//false
 		System.out.println(str2.matches("(?:(?!abc).)*"));//true
-		
 		System.out.println(str1.contains("abc"));//true
 		System.out.println(str2.contains("abc"));//false
 	}
